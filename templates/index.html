@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRAPHICS</title>
+    <style>
+        body {
+            
+            margin: 0px;
+            overflow: hidden;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 0;
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+        }
+
+        h1 {
+            color: whitesmoke;
+            margin-bottom: 20px;
+        }
+
+        a {
+            color: #0078ff;
+        }
+        p {
+            margin-bottom: 10px;
+        }
+        #canvas {
+            width: 100%;
+            height: 1080px; /* to change animation window size keep 700px to leave the bottom space free*/
+            overflow: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: #1a1724;
+        }
+
+        .canvas-wrap {
+            position: relative;
+
+        }
+        #container {
+            width: 400px;
+            margin: auto; /* Add this line to center the container */
+            background-color: rgba(0, 0, 0, 0.295);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
+            text-align: center;
+            margin-top: 13%;
+        }
+        div.canvas-content {
+            position: relative;
+            z-index: 2000;
+            color: #fff;
+            text-align: center;
+            padding-top: 30px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: black;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 0 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #status {
+            margin-top: 20px;
+            font-family: 'Times New Roman', Times, serif;
+        }
+        .dropdown-container {
+            text-align: left;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <section class="canvas-wrap">
+        <div class="canvas-content">
+            <div id="container">
+                <h1>Screen Scan</h1>
+                <hr>
+                <form id="windowForm">
+                    <div class="dropdown-container">
+                        <label for="windowsDropdown">Select Window:</label><br>
+                        <select id="windowsDropdown" name="window">
+                            <option value="Google Chrome"> Google Chrome</option>
+                            <option value="Microsoft Edge">Microsoft Edge</option>
+                            <option value="Brave">Brave</option>
+                            <option value="YouTube">Youtube</option>
+                            <option value="Zoom">zoom</option>
+                            <option value="Teams">Microsoft teams</option>
+                            <option value="Google Meet">Google meet</option>
+                        </select>
+                    </div>
+                </form>
+                <p>Total Screenshots Captured: <span id="screenshot_count">{{screenshot_count}}</span></p>
+                <h6>NOTE: wait for 5 seconds after pressing the Stop Capture button</h6>
+        
+                <button id="startCapture">Start Capture</button>
+                <button id="stopCapture">Stop Capture</button>
+        
+                <div id="status"></div>
+            </div>
+        
+            <script>
+                function updateStatus(message) {
+                    document.getElementById('status').innerText = message;
+                }
+        
+                document.getElementById('startCapture').addEventListener('click', function() {
+                    const form = document.getElementById('windowForm');
+                    const formData = new FormData(form);
+                    fetch('/start_capture', { method: 'POST', body: formData })
+                        .then(response => response.json())
+                        .then(data => updateStatus(data.result))
+                        .catch(error => console.error('Error starting capture:', error));
+                });
+        
+                document.getElementById('stopCapture').addEventListener('click', function() {
+                    fetch('/stop_capture', { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => updateStatus(data.result))
+                        .catch(error => console.error('Error stopping capture:', error));
+                });
+        
+                function updatescreenshot_count(count) {
+                    document.getElementById('screenshot_count').innerText = count;
+                }
+        
+                // Periodically fetch screenshot count from server
+                setInterval(function() {
+                    fetch('/')
+                        .then(response => response.text())
+                        .then(data => {
+                            const doc = new DOMParser().parseFromString(data, 'text/html');
+                            const screenshot_count = doc.getElementById('screenshot_count').innerText;
+                            updatescreenshot_count(screenshot_count);
+                        })
+                        .catch(error => console.error('Error fetching screenshot count:', error));
+                }, 1000);
+            </script>
+        </div>
+        <div id="canvas" class="gradient"></div>
+
+    </section>
+
+    <!-- Main library -->
+    <script src="{{ url_for('static', filename='three.min.js') }}"></script>
+
+    <!-- Helpers -->
+    <script src="{{ url_for('static', filename='projector.js') }}"></script>
+    <script src="{{ url_for('static', filename='canvas-renderer.js') }}"></script>
+
+    <!-- Visualitzation adjustments -->
+    <script src="{{ url_for('static', filename='3d-lines-animation.js') }}"></script>
+
+    <!-- Animated background color -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='color.js') }}"></script>
+
+</body>
+</html>
